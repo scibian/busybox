@@ -1,41 +1,21 @@
-Based on patch described below, refreshed by mjt for 1.18.3
-and again for 1.19.3.
-
-Date: Thu, 29 Jul 2010 21:16:09 +0200
 Subject: [PATCH 18/19] (u)mount: FreeBSD support
+Date: Thu, 29 Jul 2010 21:16:09 +0200
+Last-Update: 2017-08-17
 
 Signed-off-by: Jeremie Koenig <jk@jk.fr.eu.org>
----
- util-linux/Config.src |    3 -
- util-linux/Kbuild.src |    4 -
- util-linux/mount.c    |   41 +-------------------
- util-linux/umount.c   |    8 +--
- util-linux/xmount.c   |   70 ++++++++++++++++++++++++++++++++++
- util-linux/xmount.h   |  101 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 181 insertions(+), 46 deletions(-)
- create mode 100644 util-linux/xmount.c
- create mode 100644 util-linux/xmount.h
 
---- a/util-linux/Kbuild.src
-+++ b/util-linux/Kbuild.src
-@@ -32,7 +32,7 @@ lib-$(CONFIG_MKFS_REISER)       += mkfs_
- lib-$(CONFIG_MKFS_VFAT)         += mkfs_vfat.o
- lib-$(CONFIG_MKSWAP)            += mkswap.o
- lib-$(CONFIG_MORE)              += more.o
--lib-$(CONFIG_MOUNT)             += mount.o
-+lib-$(CONFIG_MOUNT)             += mount.o xmount.o
- lib-$(CONFIG_PIVOT_ROOT)        += pivot_root.o
- lib-$(CONFIG_RDATE)             += rdate.o
- lib-$(CONFIG_RDEV)              += rdev.o
-@@ -43,4 +43,4 @@ lib-$(CONFIG_SCRIPTREPLAY)      += scrip
- lib-$(CONFIG_SETARCH)           += setarch.o
- lib-$(CONFIG_SWAPONOFF)         += swaponoff.o
- lib-$(CONFIG_SWITCH_ROOT)       += switch_root.o
--lib-$(CONFIG_UMOUNT)            += umount.o
-+lib-$(CONFIG_UMOUNT)            += umount.o xmount.o
 --- a/util-linux/mount.c
 +++ b/util-linux/mount.c
-@@ -82,49 +82,12 @@
+@@ -115,7 +115,7 @@
+  * Therefore we use BB_SUID_MAYBE instead of BB_SUID_REQUIRE: */
+ //applet:IF_MOUNT(APPLET(mount, BB_DIR_BIN, IF_DESKTOP(BB_SUID_MAYBE) IF_NOT_DESKTOP(BB_SUID_DROP)))
+ 
+-//kbuild:lib-$(CONFIG_MOUNT) += mount.o
++//kbuild:lib-$(CONFIG_MOUNT) += mount.o xmount.o
+ 
+ //usage:#define mount_trivial_usage
+ //usage:       "[OPTIONS] [-o OPT] DEVICE NODE"
+@@ -185,50 +185,13 @@
  #include <mntent.h>
  #include <syslog.h>
  #include <sys/mount.h>
@@ -82,11 +62,12 @@ Signed-off-by: Jeremie Koenig <jk@jk.fr.eu.org>
  #define BB_MS_INVERTED_VALUE (1u << 31)
  
  #include "libbb.h"
+ #include "common_bufsiz.h"
 +#include "xmount.h"
  #if ENABLE_FEATURE_MOUNT_LABEL
  # include "volume_id.h"
  #else
-@@ -419,7 +382,7 @@ static int verbose_mount(const char *sou
+@@ -533,7 +496,7 @@
  	int rc;
  
  	errno = 0;
@@ -95,7 +76,7 @@ Signed-off-by: Jeremie Koenig <jk@jk.fr.eu.org>
  	if (verbose >= 2)
  		bb_perror_msg("mount('%s','%s','%s',0x%08lx,'%s'):%d",
  			source, target, filesystemtype,
-@@ -427,7 +390,7 @@ static int verbose_mount(const char *sou
+@@ -541,7 +504,7 @@
  	return rc;
  }
  #else
@@ -106,31 +87,40 @@ Signed-off-by: Jeremie Koenig <jk@jk.fr.eu.org>
  // Append mount options to string
 --- a/util-linux/umount.c
 +++ b/util-linux/umount.c
-@@ -29,8 +29,8 @@
+@@ -39,7 +39,7 @@
+  * bb_common_bufsiz1 usage here is safe wrt NOEXEC: not expecting it to be zeroed.
+  */
+ 
+-//kbuild:lib-$(CONFIG_UMOUNT) += umount.o
++//kbuild:lib-$(CONFIG_UMOUNT) += umount.o xmount.o
+ 
+ //usage:#define umount_trivial_usage
+ //usage:       "[OPTIONS] FILESYSTEM|DIRECTORY"
+@@ -63,7 +63,7 @@
  //usage:       "$ umount /dev/hdc1\n"
  
  #include <mntent.h>
 -#include <sys/mount.h>
- #include "libbb.h"
-+# include "xmount.h"
- 
- #if defined(__dietlibc__)
- // TODO: This does not belong here.
-@@ -148,11 +148,11 @@ int umount_main(int argc UNUSED_PARAM, c
- 		if (m) zapit = m->dir;
- 
++#include "xmount.h"
+ #ifndef MNT_DETACH
+ # define MNT_DETACH 0x00000002
+ #endif
+@@ -187,12 +187,12 @@
+ // We do pass both flags in this case)
+ #if 0
  		// Let's ask the thing nicely to unmount.
 -		curstat = umount(zapit);
 +		curstat = xumount(zapit, 0);
  
- 		// Force the unmount, if necessary.
+ 		// Unmount with force and/or lazy flags, if necessary.
  		if (curstat && doForce)
+ #endif
 -			curstat = umount2(zapit, doForce);
 +			curstat = xumount(zapit, doForce);
  
  		// If still can't umount, maybe remount read-only?
  		if (curstat) {
-@@ -160,7 +160,7 @@ int umount_main(int argc UNUSED_PARAM, c
+@@ -200,7 +200,7 @@
  				// Note! Even if we succeed here, later we should not
  				// free loop device or erase mtab entry!
  				const char *msg = "%s busy - remounted read-only";
@@ -322,27 +312,11 @@ Signed-off-by: Jeremie Koenig <jk@jk.fr.eu.org>
 +#endif
 --- a/util-linux/Config.src
 +++ b/util-linux/Config.src
-@@ -437,7 +437,6 @@ config MORE
- config MOUNT
- 	bool "mount"
- 	default y
--	select PLATFORM_LINUX
- 	help
- 	  All files and filesystems in Unix are arranged into one big directory
- 	  tree. The 'mount' utility is used to graft a filesystem onto a
-@@ -629,7 +628,6 @@ config SWITCH_ROOT
- config UMOUNT
- 	bool "umount"
- 	default y
--	select PLATFORM_LINUX
- 	help
- 	  When you want to remove a mounted filesystem from its current mount
- 	  point, for example when you are shutting down the system, the
-@@ -650,6 +648,7 @@ config FEATURE_MOUNT_LOOP
+@@ -14,6 +14,7 @@
  	bool "Support loopback mounts"
  	default y
  	depends on MOUNT || UMOUNT
 +	select PLATFORM_LINUX
  	help
- 	  Enabling this feature allows automatic mounting of files (containing
- 	  filesystem images) via the linux kernel's loopback devices.
+ 	Enabling this feature allows automatic mounting of files (containing
+ 	filesystem images) via the linux kernel's loopback devices.

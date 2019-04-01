@@ -1,31 +1,17 @@
-# upstream stable patches
-1.22.1.diff
-ash-in-bash-compat-mode-always-export-SHLVL.diff
-libbb-fix-parsing-of-10101010-datetime-form.diff
-testsuite-fix-last-which-change.diff
-libarchive-open_zipped-does-not-need-to-check-extensions.diff
-libbb-open_zipped-should-not-fail-on-non-compressed-files.diff
-zcat:-complain-if-input-is-not-compressed.diff
-lzop-add-overflow-check-CVE-2014-4607.patch
-
-# submitted fixes
-do-not-fail-on-missing-SIGPWR.patch
-
-# cherry-pick from upstream
-find:-support-perm-_BITS.diff
-
-shell-ash-export-HOME.patch
-version.patch
-init-console.patch
+# cherry-picked from upstream
+cherry-pick.1_30_0-35-g74d9f1ba3.udhcpc-when-decoding-dhcp-subnet-ensure-it-is-4-bytes-long.patch
+cherry-pick.1_30_0-110-gbb3a9531b.ip-fix-ip-o-link.patch
 
 # The following patches will likely be merged soon
 u-mount-FreeBSD-support.patch
 swaponoff-FreeBSD-support.patch
 
-modprobe-read-modules-builtin.patch
-
+# other patches
+shell-ash-export-HOME.patch
+version.patch
+init-console.patch
 stop-checking-ancient-kernel-version.patch
-iproute-support-onelink-route-option-and-print-route-flags.patch
-update-deb-format-support.patch
-
-CVE-2014-9645.patch
+revert-9c143ce52da11ec3d21a3491c3749841d3dc10f0.patch
+temp-deb-installer-hack.patch
+install-readlink-in-bin.patch
+ignore-ip-valid_lft.patch

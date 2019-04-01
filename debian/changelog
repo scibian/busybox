@@ -1,3 +1,148 @@
+busybox (1:1.30.1-4) unstable; urgency=high
+
+  [ Ben Hutchings ]
+  * Drop "Stop overriding stack alignment on i386" as this behaviour is now
+    configurable
+  * debian/rules: Enable verbose output (V=1) for "make oldconfig"
+
+  [ Cyril Brulebois ]
+  * Reinstate temp-deb-installer-hack.patch and FEATURE_DI_ENV_HACK=y
+    Closes: #925979
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Mon, 01 Apr 2019 07:17:50 +0200
+
+busybox (1:1.30.1-3) unstable; urgency=high
+
+  * Ignore any valid_lft or preferred_lft parameters to ip, thanks 
+    Steve Langasek. Closes: #924442
+  * Fix ip oneline, thanks Dominik George. Closes: #924374
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sun, 24 Mar 2019 16:52:05 +0100
+
+busybox (1:1.30.1-2) unstable; urgency=high
+
+  * Complete the fix for [CVE-2018-20679] Closes: #918846
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Sat, 02 Mar 2019 09:11:13 +0100
+
+busybox (1:1.30.1-1) unstable; urgency=high
+
+  [ Christoph Biedl ]
+  * New upstream version 1.30.1
+    Closes: #918846 [CVE-2018-20679]
+  * Refresh patch queue
+  * Update busybox configurations for new upstream version
+
+  * Debian packaging changes:
+    [ Chris Boot ]
+    * Check signatures on upstream tarballs:
+      - d/watch: set opts=pgpsigurlmangle
+      - d/upstream/signing-key.asc: import Denis Vlasenko's key
+    * d/changelog:
+      - Correct CVE reference in changelog entry for previous upload.
+      - Remove trailing whitespace.
+    * d/rules:
+      - Remove trailing whitespace.
+    * Switch to debhelper 11.
+    * d/control:
+      - Set Rules-Requires-Root: no.
+      - Bump Standards-Version to 4.1.5; no other changes required.
+    * Remove obsolete files:
+      - d/bin/genorig.py: not needed since ~2008.
+      - d/udeb-sizes: not updated since ~2012.
+    [ Christoph Biedl ]
+    * Add a README for any package maintainer
+
+  [ Chris Boot ]
+  * Refresh and rework patches:
+    - Drop patches cherry-picked from upstream.
+    - Drop temp-deb-installer-hack.patch: no longer needed.
+    - Rework patches to account for upstream changes:
+      - shell-ash-export-HOME.patch
+      - version.patch
+  * Enable new applets for use by initramfs-tools: nuke, resume, run-init.
+
+ -- Christoph Biedl <debian.axhn@manchmal.in-ulm.de>  Fri, 01 Mar 2019 21:19:43 +0100
+
+busybox (1:1.27.2-3) unstable; urgency=medium
+
+  [ Cyril Brulebois ]
+  * Update Vcs-{Browser,Git} to point to salsa (alioth's replacement).
+
+  [ Chris Lamb ]
+  * PEP8 fixes.
+
+  [ Ben Hutchings ]
+  * Stop overriding stack alignment on i386 (Closes: #886506)
+  * Apply security fixes for wget from upstream:
+    - wget: more thorough sanitization of other side's data
+    - wget: check chunk length for overflowing off_t (CVE-2018-1000517)
+      (Closes: #902724)
+    - wget: handle URLs with @ or hash differently
+
+ -- Ben Hutchings <ben@decadent.org.uk>  Fri, 13 Jul 2018 04:19:08 +0100
+
+busybox (1:1.27.2-2) unstable; urgency=medium
+
+  * Trigger an initramfs rebuild on installation. (Closes: #549022)
+  * Temporarily re-enable invalid variable names in the udeb flavour for
+    debian-installer.
+  * Install the readlink binary in /bin. (Closes: #801850)
+  * Fix integer overflow in bzip2 decompresson [CVE-2017-15873].
+    (Closes: #879732)
+  * Fix integer underflow in LZMA decompressor [CVE-2017-15874].
+    (Closes: #879732)
+  * Prevent tab completion for strings containing control characters
+    [CVE-2017-16544].
+  * Debian packaging changes:
+    - Update debian/control:
+      - Update Standards-Version to 4.1.1.
+      - Change Priority to optional for all packages.
+    - Remove obsolete debian/gbp.conf.
+    - Update debian/watch:
+      - Switch to format=4.
+      - Use HTTPS URI.
+
+ -- Chris Boot <bootc@debian.org>  Tue, 28 Nov 2017 13:45:04 +0000
+
+busybox (1:1.27.2-1) unstable; urgency=medium
+
+  * New upstream release. This addresses:
+    - Segmentation fault when creating compressed tar files. (Closes: #812074)
+    - Pointer misuse unziping files. (Closes: #803097)
+    - Buffer overflow in the DHCP client [CVE-2016-2148]. (Closes: #818497)
+    - Integer overflow in the DHCP client [CVE-2016-2147]. (Closes: #818499)
+  * Postpone creation of symlinks with "suspicious" targets [CVE-2011-5325].
+    (Closes: #802702)
+  * Re-enable the test suite during build. (Closes: #794526)
+  * udhcpc: correct a typo in /etc/udhcpc/default.script. (Closes: #873472)
+  * Debian packaging changes:
+    - Run wrap-and-sort -st.
+    - Update debian/control:
+      - Replace Uploaders with myself and Christoph Biedl. Many thanks to
+        Bastian Blank and Michael Tokarev for having maintained busybox for
+        many years prior.
+      - Remove Build-Depends to avoid ancient broken libc-dev-bin.
+      - Bump Build-Depends on debhelper to >= 10.
+    - Rewrite debian/rules:
+      - Simplify and use the dh sequencer.
+      - Remove test for ancient broken libc6 versions with static binaries.
+      - Strip -O2 from CFLAGS, falling back to -Os from the busybox
+        configuration.
+      - Abort the build if 'make oldconfig' changes the configuration at all.
+    - Update busybox build configuration files for the new upstream release.
+      - The udeb configuration mostly hasn't changed, but enable fgrep,
+        blkdiscard, bzcat and lsscsi.
+      - The deb and static configurations have had upstream recommendations
+        enabled for new options.
+    - Switch to debhelper compatibility level 10.
+    - Add Depends on lsb-base to busybox-syslogd and udhcpd.
+    - Update debian/.gitignore.
+    - Update Standards-Version to 4.0.1:
+      - Disable tests that require networking.
+
+ -- Chris Boot <bootc@debian.org>  Sun, 17 Sep 2017 17:59:31 +0100
+
 busybox (1:1.22.0-19) unstable; urgency=medium
 
   * busybox-udeb, udhcpc: Remove /udhcpc/usr/share/udhcpc/default.script,
@@ -812,7 +957,7 @@ busybox (1:1.17.1-5) unstable; urgency=low
 
 busybox (1:1.17.1-4) unstable; urgency=low
 
-  * Update u-mount-FreeBSD-support.patch: 
+  * Update u-mount-FreeBSD-support.patch:
     - Add a few more mount options.
     - Fix mounting of nullfs filesystems.
 
@@ -850,7 +995,7 @@ busybox (1:1.17.1-1) experimental; urgency=low
   * Fix busybox-udeb description: s/busybox-cvs-udeb/busybox-udeb/
   * Fix busybox description wrt --install option (Closes: #326243).
   * Fix /etc/init.d/udhcpd restart (Closes: #581342)
-  * Fix /etc/init.d/busybox-{klogd,syslogd} to correctly depend on 
+  * Fix /etc/init.d/busybox-{klogd,syslogd} to correctly depend on
     $remote_fs.
   * Fix bashism in udhcpc default.script (Closes: #572008, #572013,
     #572622).
@@ -1397,7 +1542,7 @@ busybox-cvs (0.60.99.cvs20030426-10) unstable; urgency=low
 busybox-cvs (0.60.99.cvs20030426-9) unstable; urgency=low
 
   * modutils/depmod.c
-    - fix base_dir for modules.dep 
+    - fix base_dir for modules.dep
 
  -- Bastian Blank <waldi@debian.org>  Sat, 07 Jun 2003 14:52:54 +0200
 
@@ -1533,13 +1678,13 @@ busybox-cvs (0.60.99.cvs20030114-1) unstable; urgency=low
 busybox-cvs (0.60.99.cvs20030105-1) unstable; urgency=low
 
   * Fix ip command build failure on ia64 (Closes: #172580
-  * Dont build with BSD partition table support in fdisk, fails on m68k 
+  * Dont build with BSD partition table support in fdisk, fails on m68k
 
  -- Glenn McGrath <bug1@debian.org>  Sun,  5 Jan 2003 12:48:05 +1100
 
 busybox-cvs (0.60.99.cvs20030104-2) unstable; urgency=low
 
-  * floppy-retriever needs the cut command in the udeb 
+  * floppy-retriever needs the cut command in the udeb
 
  -- Glenn McGrath <bug1@debian.org>  Sat,  4 Jan 2003 17:13:05 +1100
 
@@ -1677,7 +1822,7 @@ busybox (1:0.51-4) unstable; urgency=low
 busybox (1:0.51-3) unstable; urgency=low
 
   * This is the "I am an idiot" release.
-  * Make cp and mv work again (closes: #97290) 
+  * Make cp and mv work again (closes: #97290)
   * Fix the version number.
 
  -- Erik Andersen <andersee@debian.org>  Sat, 12 May 2001 17:35:58 -0600
@@ -1698,13 +1843,13 @@ busybox (0.51-1) unstable; urgency=low
     for complete details)
   * Force USE_SYSTEM_PWD_GRP=false, so busybox bypasses
     the glibc NSS libraries. (closes: #93362)
-  * Fixed a bug in sed's address range handling (closes: #91758) 
+  * Fixed a bug in sed's address range handling (closes: #91758)
   * Removed irrelevant cruft from the bottem of debian/changelog
 
  -- Erik Andersen <andersee@debian.org>  Tue, 10 Apr 2001 14:07:29 -0600
 
 busybox (0.50-2) unstable; urgency=low
-  
+
   * Enabled freeramdisk and pivot_root in the udeb (closes: #91336)
   * Disabled lash (the busybox shell) in the udeb (closes: #91337)
   * fixed a bug in syslog, a problem with rebooting when booted as
@@ -1714,7 +1859,7 @@ busybox (0.50-2) unstable; urgency=low
 
 
 busybox (0.50-2) unstable; urgency=low
-  
+
   * Enabled freeramdisk and pivot_root in the udeb (closes: #91336)
   * Disabled lash (the busybox shell) in the udeb (closes: #91337)
   * fixed a bug in syslog, a problem with rebooting when booted as
@@ -1743,7 +1888,7 @@ busybox (0.49-1) unstable; urgency=low
 busybox (0.48-1) unstable; urgency=low
 
   * Lots more source updates and bug fixes.  See changelog for details.
-  * Now includes .udeb support for the debian-installer.  The .udeb 
+  * Now includes .udeb support for the debian-installer.  The .udeb
     probably needs some more work, but this should be a good start.
 
  -- Erik Andersen <andersee@debian.org>  Wed, 13 Dec 2000 08:36:07 -0700
@@ -1762,15 +1907,14 @@ busybox (0.46-1) unstable; urgency=low
 
 busybox (0.45-1) unstable; urgency=low
 
-  * First attempt at packaging BusyBox as a .deb.  This has been in 
+  * First attempt at packaging BusyBox as a .deb.  This has been in
     in the Debian boot-floppies CVS tree forever.  Hopefully, having it as a
     standalone app will make life easier for me, the debian-installer team, and
     everyone else as well...
-  * I have created a busybox-static that can be used as a rescue shell when you 
+  * I have created a busybox-static that can be used as a rescue shell when you
     hose your system.  Just invoke "busybox sh" to fir up the shell.  This has
     every app provided by busybox staically linked in.  There have been several
     times in the past that I would have loved to have this sitting on my system
     (i.e. when libc gets screwed up.)
 
  -- Erik Andersen <andersee@debian.org>  Tue, 27 Jun 2000 12:26:41 -0600
-

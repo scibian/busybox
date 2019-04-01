@@ -1,7 +1,7 @@
-From: Michael Tokarev <mjt@tls.msk.ru>
 Subject: stop checking ancient kernel version for NFS mount
+From: Michael Tokarev <mjt@tls.msk.ru>
+Bug-Debian: https://bugs.debian.org/684611
 Forwarded: no
-Bug-Debian: http://bugs.debian.org/684611
 
 The nfs mount code checks for ancient kernel 2.2.18 (!) to determine
 which mount protocol to use (v3 or v4).  Stop doing this, and always
@@ -17,7 +17,7 @@ is needed for all this code upstream.
 
 --- a/util-linux/mount.c
 +++ b/util-linux/mount.c
-@@ -285,9 +285,6 @@
+@@ -411,9 +411,6 @@
  
  
  struct globals {
@@ -27,16 +27,16 @@ is needed for all this code upstream.
  #if ENABLE_FEATURE_MOUNT_VERBOSE
  	unsigned verbose;
  #endif
-@@ -296,7 +293,7 @@
+@@ -422,7 +419,7 @@
  } FIX_ALIASING;
  enum { GETMNTENT_BUFSIZE = COMMON_BUFSIZE - offsetof(struct globals, getmntent_buf) };
- #define G (*(struct globals*)&bb_common_bufsiz1)
+ #define G (*(struct globals*)bb_common_bufsiz1)
 -#define nfs_mount_version (G.nfs_mount_version)
 +#define nfs_mount_version 4 /* assume kernel>= 2.4, use v4 nfs mount protocol */
  #if ENABLE_FEATURE_MOUNT_VERBOSE
  #define verbose           (G.verbose          )
  #else
-@@ -937,6 +934,7 @@
+@@ -1072,6 +1069,7 @@
  static void
  find_kernel_nfs_mount_version(void)
  {
@@ -44,7 +44,7 @@ is needed for all this code upstream.
  	int kernel_version;
  
  	if (nfs_mount_version)
-@@ -950,6 +948,7 @@
+@@ -1085,6 +1083,7 @@
  			nfs_mount_version = 3;
  		/* else v4 since 2.3.99pre4 */
  	}

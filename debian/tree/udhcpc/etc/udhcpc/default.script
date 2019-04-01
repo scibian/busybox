@@ -9,7 +9,7 @@
 RESOLV_CONF="/etc/resolv.conf"
 
 log() {
-    logger -t "uchcpc[$PPID]" -p daemon.$1 "$interface: $2"
+    logger -t "udhcpc[$PPID]" -p daemon.$1 "$interface: $2"
 }
 
 case $1 in
