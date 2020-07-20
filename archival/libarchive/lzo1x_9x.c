@@ -71,7 +71,6 @@ typedef struct {
 	uint8_t *out;
 
 	unsigned r1_lit;
-
 } lzo1x_999_t;
 
 #define getbyte(c)  ((c).ip < (c).in_end ? *((c).ip)++ : (-1))
@@ -488,7 +487,7 @@ static int find_match(lzo1x_999_t *c, lzo_swd_p s,
 }
 
 /* this is a public functions, but there is no prototype in a header file */
-static int lzo1x_999_compress_internal(const uint8_t *in , unsigned in_len,
+static int lzo1x_999_compress_internal(const uint8_t *in, unsigned in_len,
 		uint8_t *out, unsigned *out_len,
 		void *wrkmem,
 		unsigned good_length,
